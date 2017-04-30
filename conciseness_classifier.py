@@ -1,9 +1,9 @@
 import csv
-import os
 import re
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import mean_squared_error
+from utils import write_submission
 
 def contains_number(s):
     regex = re.compile("\d")
@@ -17,23 +17,24 @@ def extract_features(filename):
         reader = csv.reader(file)
         for row in reader:
             title = row[2]
+            ''' 
+                Feel free to create your amazing features here
+                ...
+            '''
             features.append([len(title), contains_number(title)])
     return np.asarray(features)
 
-def write_submission(model):
-    if not os.path.exists('submission'):
-        os.makedirs('submission')
-    X = extract_features("data/validation/data_valid.csv")
-    y = model.predict_proba(X)[:,1]
-    np.savetxt('submission/conciseness_valid.predict', y, fmt='%.5f')
-    print('conciseness_valid.predict updated')
-
 if __name__ == "__main__":
+    # Data loading
     X = extract_features("data/training/data_train.csv")
     y = np.loadtxt("data/training/conciseness_train.labels", dtype=int)
 
+    # Model training
     model = LogisticRegression()
     model.fit(X, y)
     print("Model RMSE: %f" % mean_squared_error(model.predict_proba(X)[:,1], y)**0.5)
 
-    write_submission(model)
+    # Validation predicting
+    X_valid = extract_features("data/validation/data_valid.csv")
+    predicted_results = model.predict_proba(X_valid)[:, 1]
+    write_submission('conciseness_valid.predict', predicted_results)
